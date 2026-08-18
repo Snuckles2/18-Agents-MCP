@@ -12,7 +12,7 @@ const Favorites = () => {
   const navigate = useNavigate();
   const [newComments, setNewComments] = useState({});
   const [editingComment, setEditingComment] = useState(null);
-  const [commentError, setCommentError] = useState('');
+  const [commentErrors, setCommentErrors] = useState({});
 
   useEffect(() => {
     if (!token) {
@@ -35,9 +35,9 @@ const Favorites = () => {
     try {
       await dispatch(addComment({ token, bookId, content: newComments[bookId] || '' })).unwrap();
       setNewComments({ ...newComments, [bookId]: '' });
-      setCommentError('');
+      setCommentErrors({ ...commentErrors, [bookId]: '' });
     } catch (error) {
-      setCommentError(error.message);
+      setCommentErrors({ ...commentErrors, [bookId]: error.message });
     }
   };
 
@@ -45,9 +45,9 @@ const Favorites = () => {
     try {
       await dispatch(updateComment({ token, bookId, commentId, content: editingComment.content })).unwrap();
       setEditingComment(null);
-      setCommentError('');
+      setCommentErrors({ ...commentErrors, [bookId]: '' });
     } catch (error) {
-      setCommentError(error.message);
+      setCommentErrors({ ...commentErrors, [bookId]: error.message });
     }
   };
 
@@ -100,7 +100,10 @@ const Favorites = () => {
                     ) : (
                       <>
                         <span>{comment.content}</span>
-                        <button className={styles.simpleBtn} onClick={() => setEditingComment(comment)}>Edit</button>
+                        <button className={styles.simpleBtn} onClick={() => {
+                          setEditingComment(comment);
+                          setCommentErrors({ ...commentErrors, [book.id]: '' });
+                        }}>Edit</button>
                         <button className={styles.simpleBtn} onClick={() => dispatch(deleteComment({ token, bookId: book.id, commentId: comment.id }))}>Delete</button>
                       </>
                     )}
@@ -109,15 +112,18 @@ const Favorites = () => {
                 <textarea
                   aria-label={`Add comment for ${book.title}`}
                   value={newComments[book.id] || ''}
-                  onChange={event => setNewComments({ ...newComments, [book.id]: event.target.value })}
+                  onChange={event => {
+                    setNewComments({ ...newComments, [book.id]: event.target.value });
+                    setCommentErrors({ ...commentErrors, [book.id]: '' });
+                  }}
                 />
                 <button className={styles.simpleBtn} onClick={() => handleAddComment(book.id)}>Add Comment</button>
+                {commentErrors[book.id] && <div role="alert">{commentErrors[book.id]}</div>}
               </div>
             </li>
           ))}
         </ul>
       )}
-      {commentError && <div role="alert">{commentError}</div>}
     </div>
   );
 };

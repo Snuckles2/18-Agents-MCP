@@ -1,16 +1,17 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 const authHeader = (token) => ('Bear' + 'er ') + token;
+const favoritesUrl = 'http://localhost:4000/api/favorites';
 
 export const fetchFavorites = createAsyncThunk('favorites/fetchFavorites', async (token) => {
-  const res = await fetch('http://localhost:4000/api/favorites', {
+  const res = await fetch(favoritesUrl, {
     headers: { Authorization: authHeader(token) },
   });
   return res.json();
 });
 
 export const addFavorite = createAsyncThunk('favorites/addFavorite', async ({ token, bookId }) => {
-  await fetch('http://localhost:4000/api/favorites', {
+  await fetch(favoritesUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -22,7 +23,7 @@ export const addFavorite = createAsyncThunk('favorites/addFavorite', async ({ to
 });
 
 export const removeFavorite = createAsyncThunk('favorites/removeFavorite', async ({ token, bookId }) => {
-  const res = await fetch(`http://localhost:4000/api/favorites/${bookId}`, {
+  const res = await fetch(`${favoritesUrl}/${bookId}`, {
     method: 'DELETE',
     headers: { Authorization: authHeader(token) },
   });
@@ -46,16 +47,16 @@ async function commentRequest(url, method, token, content) {
 
 export const addComment = createAsyncThunk('favorites/addComment', async ({ token, bookId, content }) => ({
   bookId,
-  comment: await commentRequest(`http://localhost:4000/api/favorites/${bookId}/comments`, 'POST', token, content),
+  comment: await commentRequest(`${favoritesUrl}/${bookId}/comments`, 'POST', token, content),
 }));
 
 export const updateComment = createAsyncThunk('favorites/updateComment', async ({ token, bookId, commentId, content }) => ({
   bookId,
-  comment: await commentRequest(`http://localhost:4000/api/favorites/${bookId}/comments/${commentId}`, 'PUT', token, content),
+  comment: await commentRequest(`${favoritesUrl}/${bookId}/comments/${commentId}`, 'PUT', token, content),
 }));
 
 export const deleteComment = createAsyncThunk('favorites/deleteComment', async ({ token, bookId, commentId }) => {
-  await commentRequest(`http://localhost:4000/api/favorites/${bookId}/comments/${commentId}`, 'DELETE', token);
+  await commentRequest(`${favoritesUrl}/${bookId}/comments/${commentId}`, 'DELETE', token);
   return { bookId, commentId };
 });
 
