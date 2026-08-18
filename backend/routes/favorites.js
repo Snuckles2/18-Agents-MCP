@@ -74,7 +74,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     res.status(200).json({ message: 'Book removed from favorites' });
   });
 
-  router.post('/:bookId/comments', authenticateToken, commentWriteLimiter, (req, res) => {
+  router.post('/:bookId/comments', commentWriteLimiter, authenticateToken, (req, res) => {
     const favorite = getFavoriteUser(req, res);
     if (!favorite) return;
     const content = typeof req.body.content === 'string' ? req.body.content.trim() : '';
@@ -85,7 +85,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     res.status(201).json(comment);
   });
 
-  router.put('/:bookId/comments/:commentId', authenticateToken, commentWriteLimiter, (req, res) => {
+  router.put('/:bookId/comments/:commentId', commentWriteLimiter, authenticateToken, (req, res) => {
     const favorite = getFavoriteUser(req, res);
     if (!favorite) return;
     const content = typeof req.body.content === 'string' ? req.body.content.trim() : '';
@@ -97,7 +97,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     res.json(comment);
   });
 
-  router.delete('/:bookId/comments/:commentId', authenticateToken, commentDeleteLimiter, (req, res) => {
+  router.delete('/:bookId/comments/:commentId', commentDeleteLimiter, authenticateToken, (req, res) => {
     const favorite = getFavoriteUser(req, res);
     if (!favorite) return;
     const index = favorite.comments.findIndex(item => item.id === req.params.commentId);
