@@ -30,4 +30,15 @@ export default [
       ],
     },
   },
+  {
+    files: ['cypress/e2e/**/*.js'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.mocha,
+        ...globals.cypress,
+        cy: 'readonly',
+      },
+    },
+  },
 ]
