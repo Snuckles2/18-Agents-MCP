@@ -50,4 +50,25 @@ describe('Book Favorites App', () => {
     cy.visit('http://localhost:5173/books');
     cy.url().should('eq', 'http://localhost:5173/');
   });
+
+  it('should add, persist, edit, and delete a favorite comment', () => {
+    cy.contains('Login').click();
+    cy.get('input[name="username"]').type(user.username);
+    cy.get('input[name="password"]').type(user.password);
+    cy.get('button#login').click();
+    cy.contains('Books').click();
+    cy.get('button').contains('Add to Favorites').first().click();
+    cy.get('a#favorites-link').click();
+    cy.get('textarea').first().type('A favorite note');
+    cy.contains('button', 'Add Comment').click();
+    cy.contains('A favorite note').should('exist');
+    cy.reload();
+    cy.contains('A favorite note').should('exist');
+    cy.contains('button', 'Edit').click();
+    cy.get('input[aria-label="Edit comment"]').clear().type('An edited favorite note');
+    cy.contains('button', 'Save').click();
+    cy.contains('An edited favorite note').should('exist');
+    cy.contains('button', 'Delete').click();
+    cy.contains('An edited favorite note').should('not.exist');
+  });
 });

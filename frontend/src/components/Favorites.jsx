@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchFavorites, removeFavorite } from '../store/favoritesSlice';
+import { addComment, deleteComment, fetchFavorites, removeFavorite, updateComment } from '../store/favoritesSlice';
 import { useNavigate } from 'react-router-dom';
 import styles from '../styles/BookList.module.css';
 
@@ -10,6 +10,9 @@ const Favorites = () => {
   const status = useAppSelector(state => state.favorites.status);
   const token = useAppSelector(state => state.user.token);
   const navigate = useNavigate();
+  const [newComments, setNewComments] = useState({});
+  const [editingComment, setEditingComment] = useState(null);
+  const [commentError, setCommentError] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -26,6 +29,26 @@ const Favorites = () => {
     }
     if (!window.confirm('Remove this book from your favorites?')) return;
     await dispatch(removeFavorite({ token, bookId }));
+  };
+
+  const handleAddComment = async (bookId) => {
+    try {
+      await dispatch(addComment({ token, bookId, content: newComments[bookId] || '' })).unwrap();
+      setNewComments({ ...newComments, [bookId]: '' });
+      setCommentError('');
+    } catch (error) {
+      setCommentError(error.message);
+    }
+  };
+
+  const handleUpdateComment = async (bookId, commentId) => {
+    try {
+      await dispatch(updateComment({ token, bookId, commentId, content: editingComment.content })).unwrap();
+      setEditingComment(null);
+      setCommentError('');
+    } catch (error) {
+      setCommentError(error.message);
+    }
   };
 
   if (status === 'loading') return <div>Loading...</div>;
@@ -61,10 +84,40 @@ const Favorites = () => {
               >
                 Remove
               </button>
+              <div>
+                <h3>Comments</h3>
+                {book.comments.map(comment => (
+                  <div key={comment.id}>
+                    {editingComment?.id === comment.id ? (
+                      <>
+                        <input
+                          aria-label="Edit comment"
+                          value={editingComment.content}
+                          onChange={event => setEditingComment({ ...editingComment, content: event.target.value })}
+                        />
+                        <button className={styles.simpleBtn} onClick={() => handleUpdateComment(book.id, comment.id)}>Save</button>
+                      </>
+                    ) : (
+                      <>
+                        <span>{comment.content}</span>
+                        <button className={styles.simpleBtn} onClick={() => setEditingComment(comment)}>Edit</button>
+                        <button className={styles.simpleBtn} onClick={() => dispatch(deleteComment({ token, bookId: book.id, commentId: comment.id }))}>Delete</button>
+                      </>
+                    )}
+                  </div>
+                ))}
+                <textarea
+                  aria-label={`Add comment for ${book.title}`}
+                  value={newComments[book.id] || ''}
+                  onChange={event => setNewComments({ ...newComments, [book.id]: event.target.value })}
+                />
+                <button className={styles.simpleBtn} onClick={() => handleAddComment(book.id)}>Add Comment</button>
+              </div>
             </li>
           ))}
         </ul>
       )}
+      {commentError && <div role="alert">{commentError}</div>}
     </div>
   );
 };

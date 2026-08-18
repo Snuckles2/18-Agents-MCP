@@ -141,4 +141,59 @@ describe('Favorites API', () => {
     const res = await request(app).delete('/api/favorites/1');
     expect(res.statusCode).toBe(401);
   });
+
+  it('should create, read, update, delete, and persist comments for a favorite', async () => {
+    const token = getToken('sandra');
+    const bookId = '2';
+    const create = await request(app)
+      .post(`/api/favorites/${bookId}/comments`)
+      .set('Authorization', authHeader(token))
+      .send({ content: 'A personal note' });
+    expect(create.statusCode).toBe(201);
+    expect(create.body.content).toBe('A personal note');
+
+    const read = await request(app)
+      .get('/api/favorites')
+      .set('Authorization', authHeader(token));
+    expect(read.body.find(book => book.id === bookId).comments).toEqual([create.body]);
+
+    const update = await request(app)
+      .put(`/api/favorites/${bookId}/comments/${create.body.id}`)
+      .set('Authorization', authHeader(token))
+      .send({ content: 'An updated personal note' });
+    expect(update.statusCode).toBe(200);
+    expect(update.body.content).toBe('An updated personal note');
+
+    const persisted = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+    expect(persisted.find(user => user.username === 'sandra').favoriteComments[bookId][0].content)
+      .toBe('An updated personal note');
+
+    const remove = await request(app)
+      .delete(`/api/favorites/${bookId}/comments/${create.body.id}`)
+      .set('Authorization', authHeader(token));
+    expect(remove.statusCode).toBe(200);
+  });
+
+  it('should reject empty comments and comments on books that are not favorites', async () => {
+    const token = getToken('sandra');
+    const empty = await request(app)
+      .post('/api/favorites/2/comments')
+      .set('Authorization', authHeader(token))
+      .send({ content: '   ' });
+    expect(empty.statusCode).toBe(400);
+    expect(empty.body.message).toMatch(/cannot be empty/);
+
+    const nonFavorite = await request(app)
+      .post('/api/favorites/999/comments')
+      .set('Authorization', authHeader(token))
+      .send({ content: 'Not allowed' });
+    expect(nonFavorite.statusCode).toBe(403);
+  });
+
+  it('should reject unauthenticated comment changes', async () => {
+    const res = await request(app)
+      .post('/api/favorites/2/comments')
+      .send({ content: 'Not allowed' });
+    expect(res.statusCode).toBe(401);
+  });
 });
