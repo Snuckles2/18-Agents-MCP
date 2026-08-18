@@ -95,7 +95,7 @@ const Favorites = () => {
               </button>
               <div>
                 <h3>Comments</h3>
-                {book.comments.map(comment => (
+                {(book.comments || []).map(comment => (
                   <div key={comment.id}>
                     {editingComment?.id === comment.id ? (
                       <>

@@ -78,16 +78,16 @@ const favoritesSlice = createSlice({
       })
       .addCase(addComment.fulfilled, (state, action) => {
         const book = state.items.find(item => item.id === action.payload.bookId);
-        if (book) book.comments.push(action.payload.comment);
+        if (book) (book.comments ||= []).push(action.payload.comment);
       })
       .addCase(updateComment.fulfilled, (state, action) => {
         const book = state.items.find(item => item.id === action.payload.bookId);
-        const comment = book?.comments.find(item => item.id === action.payload.comment.id);
+        const comment = book?.comments?.find(item => item.id === action.payload.comment.id);
         if (comment) comment.content = action.payload.comment.content;
       })
       .addCase(deleteComment.fulfilled, (state, action) => {
         const book = state.items.find(item => item.id === action.payload.bookId);
-        if (book) book.comments = book.comments.filter(item => item.id !== action.payload.commentId);
+        if (book) book.comments = (book.comments || []).filter(item => item.id !== action.payload.commentId);
       });
   },
 });
