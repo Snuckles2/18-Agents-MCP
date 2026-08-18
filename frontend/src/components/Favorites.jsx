@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { fetchFavorites, removeFavorite } from '../store/favoritesSlice';
+import { addComment, deleteComment, fetchFavorites, removeFavorite, updateComment } from '../store/favoritesSlice';
 import { useNavigate } from 'react-router-dom';
 import styles from '../styles/BookList.module.css';
 
@@ -10,6 +10,9 @@ const Favorites = () => {
   const status = useAppSelector(state => state.favorites.status);
   const token = useAppSelector(state => state.user.token);
   const navigate = useNavigate();
+  const [newComments, setNewComments] = useState({});
+  const [editingComment, setEditingComment] = useState(null);
+  const [commentErrors, setCommentErrors] = useState({});
 
   useEffect(() => {
     if (!token) {
@@ -26,6 +29,46 @@ const Favorites = () => {
     }
     if (!window.confirm('Remove this book from your favorites?')) return;
     await dispatch(removeFavorite({ token, bookId }));
+  };
+
+  const handleAddComment = async (bookId) => {
+    const content = (newComments[bookId] || '').trim();
+    if (!content) {
+      setCommentErrors({ ...commentErrors, [bookId]: 'Comment cannot be empty' });
+      return;
+    }
+    try {
+      await dispatch(addComment({ token, bookId, content })).unwrap();
+      setNewComments({ ...newComments, [bookId]: '' });
+      setCommentErrors({ ...commentErrors, [bookId]: '' });
+    } catch (error) {
+      setCommentErrors({ ...commentErrors, [bookId]: error.message });
+    }
+  };
+
+  const handleUpdateComment = async (bookId, commentId) => {
+    if (!editingComment) return;
+    const content = editingComment.content.trim();
+    if (!content) {
+      setCommentErrors({ ...commentErrors, [bookId]: 'Comment cannot be empty' });
+      return;
+    }
+    try {
+      await dispatch(updateComment({ token, bookId, commentId, content })).unwrap();
+      setEditingComment(null);
+      setCommentErrors({ ...commentErrors, [bookId]: '' });
+    } catch (error) {
+      setCommentErrors({ ...commentErrors, [bookId]: error.message });
+    }
+  };
+
+  const handleDeleteComment = async (bookId, commentId) => {
+    try {
+      await dispatch(deleteComment({ token, bookId, commentId })).unwrap();
+      setCommentErrors({ ...commentErrors, [bookId]: '' });
+    } catch (error) {
+      setCommentErrors({ ...commentErrors, [bookId]: error.message });
+    }
   };
 
   if (status === 'loading') return <div>Loading...</div>;
@@ -61,6 +104,43 @@ const Favorites = () => {
               >
                 Remove
               </button>
+              <div>
+                <h3>Comments</h3>
+                {(book.comments || []).map(comment => (
+                  <div key={comment.id}>
+                    {editingComment?.id === comment.id ? (
+                      <>
+                        <input
+                          aria-label="Edit comment"
+                          value={editingComment.content}
+                          onChange={event => setEditingComment({ ...editingComment, content: event.target.value })}
+                        />
+                        <button className={styles.simpleBtn} onClick={() => handleUpdateComment(book.id, comment.id)}>Save</button>
+                        <button className={styles.simpleBtn} onClick={() => setEditingComment(null)}>Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <span>{comment.content}</span>
+                        <button className={styles.simpleBtn} onClick={() => {
+                          setEditingComment(comment);
+                          setCommentErrors({ ...commentErrors, [book.id]: '' });
+                        }}>Edit</button>
+                        <button className={styles.simpleBtn} onClick={() => handleDeleteComment(book.id, comment.id)}>Delete</button>
+                      </>
+                    )}
+                  </div>
+                ))}
+                <textarea
+                  aria-label={`Add comment for ${book.title}`}
+                  value={newComments[book.id] || ''}
+                  onChange={event => {
+                    setNewComments({ ...newComments, [book.id]: event.target.value });
+                    setCommentErrors({ ...commentErrors, [book.id]: '' });
+                  }}
+                />
+                <button className={styles.simpleBtn} onClick={() => handleAddComment(book.id)}>Add Comment</button>
+                {commentErrors[book.id] && <div role="alert">{commentErrors[book.id]}</div>}
+              </div>
             </li>
           ))}
         </ul>
