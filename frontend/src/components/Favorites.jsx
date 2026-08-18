@@ -51,6 +51,15 @@ const Favorites = () => {
     }
   };
 
+  const handleDeleteComment = async (bookId, commentId) => {
+    try {
+      await dispatch(deleteComment({ token, bookId, commentId })).unwrap();
+      setCommentErrors({ ...commentErrors, [bookId]: '' });
+    } catch (error) {
+      setCommentErrors({ ...commentErrors, [bookId]: error.message });
+    }
+  };
+
   if (status === 'loading') return <div>Loading...</div>;
   if (status === 'failed') return <div>Failed to load favorites.</div>;
 
@@ -104,7 +113,7 @@ const Favorites = () => {
                           setEditingComment(comment);
                           setCommentErrors({ ...commentErrors, [book.id]: '' });
                         }}>Edit</button>
-                        <button className={styles.simpleBtn} onClick={() => dispatch(deleteComment({ token, bookId: book.id, commentId: comment.id }))}>Delete</button>
+                        <button className={styles.simpleBtn} onClick={() => handleDeleteComment(book.id, comment.id)}>Delete</button>
                       </>
                     )}
                   </div>

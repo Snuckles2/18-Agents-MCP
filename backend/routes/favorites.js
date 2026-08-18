@@ -43,7 +43,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     const users = readJSON(usersFile);
     const user = getUser(req, res, users);
     if (!user) return;
-    if (user.favorites.indexOf(bookId) == -1) {
+    if (!user.favorites.includes(bookId)) {
       user.favorites.push(bookId);
       writeJSON(usersFile, users);
     }
