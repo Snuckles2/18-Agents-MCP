@@ -4,13 +4,15 @@ const { rateLimit } = require('express-rate-limit');
 
 function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, authenticateToken }) {
   const router = express.Router();
-  const commentWriteLimiter = rateLimit({
+  const createCommentLimiter = () => rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 100,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     message: { message: 'Too many comment requests, please try again later' },
   });
+  const commentWriteLimiter = createCommentLimiter();
+  const commentDeleteLimiter = createCommentLimiter();
 
   function getUser(req, res, users) {
     const user = users.find(u => u.username === req.user.username);
@@ -95,7 +97,7 @@ function createFavoritesRouter({ usersFile, booksFile, readJSON, writeJSON, auth
     res.json(comment);
   });
 
-  router.delete('/:bookId/comments/:commentId', authenticateToken, commentWriteLimiter, (req, res) => {
+  router.delete('/:bookId/comments/:commentId', authenticateToken, commentDeleteLimiter, (req, res) => {
     const favorite = getFavoriteUser(req, res);
     if (!favorite) return;
     const index = favorite.comments.findIndex(item => item.id === req.params.commentId);

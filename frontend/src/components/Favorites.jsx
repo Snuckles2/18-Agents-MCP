@@ -47,6 +47,7 @@ const Favorites = () => {
   };
 
   const handleUpdateComment = async (bookId, commentId) => {
+    if (!editingComment) return;
     const content = editingComment.content.trim();
     if (!content) {
       setCommentErrors({ ...commentErrors, [bookId]: 'Comment cannot be empty' });
