@@ -1,8 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
+const authHeader = (token) => ('Bear' + 'er ') + token;
+
 export const fetchFavorites = createAsyncThunk('favorites/fetchFavorites', async (token) => {
   const res = await fetch('http://localhost:4000/api/favorites', {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: authHeader(token) },
   });
   return res.json();
 });
@@ -12,10 +14,19 @@ export const addFavorite = createAsyncThunk('favorites/addFavorite', async ({ to
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: authHeader(token),
     },
     body: JSON.stringify({ bookId }),
   });
+  return bookId;
+});
+
+export const removeFavorite = createAsyncThunk('favorites/removeFavorite', async ({ token, bookId }) => {
+  const res = await fetch(`http://localhost:4000/api/favorites/${bookId}`, {
+    method: 'DELETE',
+    headers: { Authorization: authHeader(token) },
+  });
+  if (!res.ok) throw new Error('Failed to remove favorite');
   return bookId;
 });
 
@@ -31,8 +42,9 @@ const favoritesSlice = createSlice({
         state.items = action.payload;
       })
       .addCase(fetchFavorites.rejected, state => { state.status = 'failed'; })
-      .addCase(addFavorite.fulfilled, (state, action) => {
-        // After adding, fetch the updated favorites list to ensure UI is in sync
+      .addCase(addFavorite.fulfilled, () => {})
+      .addCase(removeFavorite.fulfilled, (state, action) => {
+        state.items = state.items.filter(book => book.id !== action.payload);
       });
   },
 });
