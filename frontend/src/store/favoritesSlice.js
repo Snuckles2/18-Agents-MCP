@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 const authHeader = (token) => ('Bear' + 'er ') + token;
-const favoritesUrl = 'http://localhost:4000/api/favorites';
+const favoritesUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/favorites`;
 
 export const fetchFavorites = createAsyncThunk('favorites/fetchFavorites', async (token) => {
   const res = await fetch(favoritesUrl, {

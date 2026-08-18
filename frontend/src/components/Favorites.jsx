@@ -105,6 +105,7 @@ const Favorites = () => {
                           onChange={event => setEditingComment({ ...editingComment, content: event.target.value })}
                         />
                         <button className={styles.simpleBtn} onClick={() => handleUpdateComment(book.id, comment.id)}>Save</button>
+                        <button className={styles.simpleBtn} onClick={() => setEditingComment(null)}>Cancel</button>
                       </>
                     ) : (
                       <>
