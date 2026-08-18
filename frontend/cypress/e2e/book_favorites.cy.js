@@ -34,6 +34,8 @@ describe('Book Favorites App', () => {
     cy.get('button').contains('Add to Favorites').first().click();
     cy.get('a#favorites-link').click();
     cy.get('h2').contains('My Favorite Books').should('exist');
+    cy.get('button').contains('Remove').first().click();
+    cy.contains('No favorite books yet.').should('exist');
   });
 
   it('should logout and protect routes', () => {
