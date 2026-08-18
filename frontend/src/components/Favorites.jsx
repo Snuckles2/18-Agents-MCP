@@ -32,8 +32,13 @@ const Favorites = () => {
   };
 
   const handleAddComment = async (bookId) => {
+    const content = (newComments[bookId] || '').trim();
+    if (!content) {
+      setCommentErrors({ ...commentErrors, [bookId]: 'Comment cannot be empty' });
+      return;
+    }
     try {
-      await dispatch(addComment({ token, bookId, content: newComments[bookId] || '' })).unwrap();
+      await dispatch(addComment({ token, bookId, content })).unwrap();
       setNewComments({ ...newComments, [bookId]: '' });
       setCommentErrors({ ...commentErrors, [bookId]: '' });
     } catch (error) {
@@ -42,8 +47,13 @@ const Favorites = () => {
   };
 
   const handleUpdateComment = async (bookId, commentId) => {
+    const content = editingComment.content.trim();
+    if (!content) {
+      setCommentErrors({ ...commentErrors, [bookId]: 'Comment cannot be empty' });
+      return;
+    }
     try {
-      await dispatch(updateComment({ token, bookId, commentId, content: editingComment.content })).unwrap();
+      await dispatch(updateComment({ token, bookId, commentId, content })).unwrap();
       setEditingComment(null);
       setCommentErrors({ ...commentErrors, [bookId]: '' });
     } catch (error) {

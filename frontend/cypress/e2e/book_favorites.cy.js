@@ -62,7 +62,9 @@ describe('Book Favorites App', () => {
     cy.get('textarea').first().type('A favorite note');
     cy.contains('button', 'Add Comment').click();
     cy.contains('A favorite note').should('exist');
+    cy.intercept('GET', 'http://localhost:4000/api/favorites').as('getFavorites');
     cy.reload();
+    cy.wait('@getFavorites');
     cy.contains('A favorite note').should('exist');
     cy.contains('button', 'Edit').click();
     cy.get('input[aria-label="Edit comment"]').clear().type('An edited favorite note');
