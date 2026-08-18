@@ -15,5 +15,14 @@
       "20",
       "21"
     ]
+  },
+  {
+    "username": "aaa",
+    "password": "aaa",
+    "favorites": [
+      "5",
+      "25",
+      "48"
+    ]
   }
 ]
